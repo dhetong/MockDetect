@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: MockPattern
+Bundle-SymbolicName: MockPattern;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.eclipse.ui;bundle-version="3.118.0",
+ org.eclipse.jdt.core;bundle-version="3.23.0",
+ org.eclipse.core.resources;bundle-version="3.13.800",
+ org.eclipse.core.runtime;bundle-version="3.19.0",
+ org.eclipse.ui.console;bundle-version="3.9.300",
+ org.eclipse.jdt.launching;bundle-version="3.18.0"
+Automatic-Module-Name: MockPattern
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Import-Package: org.eclipse.jdt.internal.corext.callhierarchy,
+ org.eclipse.jem.java.util,
+ org.eclipse.jgit.lib;version="5.8.0",
+ org.eclipse.ui
