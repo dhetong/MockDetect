@@ -53,7 +53,7 @@ public class StubDetect extends AbstractHandler {
 	
 	private void DetectProjects(IProject[] projects) {
 		for(IProject project : projects) {
-			System.out.println("DETECTING IN: " + project.getName());
+//			System.out.println("DETECTING IN: " + project.getName());
 			try {
 				ProcessProject(project);
 			} catch (CoreException e) {
@@ -71,7 +71,6 @@ public class StubDetect extends AbstractHandler {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 	
 	private void LocateInProject(IProject project) throws CoreException{

@@ -14,12 +14,12 @@ public class APILocator extends ASTVisitor {
 	private Set<String> charainfofield = new HashSet<String>();
 	
 	public APILocator(Set<String> chara, Set<String> charafield) {
-		for(String tmp:chara) {
-			charainfo.add(tmp);
-		}
+		charainfo.addAll(chara);
+		charainfofield.addAll(charafield);
 	}
 	
 	public boolean visit(MethodDeclaration node) {
+		MethodScanner(node);
 		return super.visit(node);
 	}
 	
@@ -30,19 +30,14 @@ public class APILocator extends ASTVisitor {
 			for(Statement s : (List<Statement>) body.statements()) {
 				for(String info:charainfo) {
 					String tmp[] = info.split("-");
-					if(isAPI(s,tmp[2])) {
+					APINameCheck checker = new APINameCheck(tmp[2]);
+					s.accept(checker);
+					if(checker.isAPI) {
+						System.out.println(tmp[2]);
 						System.out.println(s.toString());
 					}
 				}
 			}
 		}
-	}
-	
-	private boolean isAPI(Statement s, String key_method) {
-		boolean flag = false;
-		if(s.toString().contains(key_method)) {
-			flag = true;
-		}
-		return flag;
 	}
 }
