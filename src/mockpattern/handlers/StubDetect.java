@@ -65,13 +65,13 @@ public class StubDetect extends AbstractHandler {
 		IJavaProject javaProject = JavaCore.create(project);
 		IPackageFragment[] packages = javaProject.getPackageFragments();
 		System.out.println(packages.toString());
+		
+		Set<String> charainfo = new HashSet<String>();
+		Set<String> charainfofield = new HashSet<String>();
 				
-		for (IPackageFragment mypackage : packages){
-			
-			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE)
-			{
-				for (ICompilationUnit unit : mypackage.getCompilationUnits())
-				{
+		for (IPackageFragment mypackage : packages){			
+			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE){
+				for (ICompilationUnit unit : mypackage.getCompilationUnits()){
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);
 					
 					Map<String, String> methodvarmap = new HashMap<>();
@@ -109,10 +109,16 @@ public class StubDetect extends AbstractHandler {
 				    		String key_1 = tmp[0] + "-" + tmp[1];
 				    		String key_2 = tmp[1];
 				    		if(methodvarmap.containsKey(key_1)) {
-				    			System.out.println(methodvarmap.get(key_1));
+				    			String info_tmp = tmp[0] + "-" + tmp[1] + "-" + tmp[2] + "-" + methodvarmap.get(key_1);
+				    			if(!charainfo.contains(info_tmp)) {
+				    				charainfo.add(info_tmp);
+				    			}
 				    		}
 				    		else if(fieldvarmap.containsKey(key_2)) {
-				    			System.out.println(fieldvarmap.get(key_2));
+				    			String info_tmp = tmp[0] + "-" + tmp[1] + "-" + tmp[2] + "-" + fieldvarmap.get(key_2);
+				    			if(!charainfofield.contains(info_tmp)) {
+				    				charainfofield.add(info_tmp);
+				    			}
 				    		}
 				    	}
 				    }
@@ -127,6 +133,14 @@ public class StubDetect extends AbstractHandler {
 //				    		System.out.println(info);
 //				    	}
 //				    }
+				}
+			}
+		}
+		
+		for (IPackageFragment mypackage : packages) {
+			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
+				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
+					CompilationUnit cunit = ASTBuilder(unit, javaProject);
 				}
 			}
 		}
