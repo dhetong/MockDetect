@@ -10,12 +10,13 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 
 public class APILocator extends ASTVisitor {
-	private Set<String> charainfo;
-	private Set<String> charainfofield;
+	private Set<String> charainfo = new HashSet<String>();
+	private Set<String> charainfofield = new HashSet<String>();
 	
 	public APILocator(Set<String> chara, Set<String> charafield) {
-		charainfo.addAll(chara);
-		charainfofield.addAll(charafield);
+		for(String tmp:chara) {
+			charainfo.add(tmp);
+		}
 	}
 	
 	public boolean visit(MethodDeclaration node) {
@@ -27,17 +28,20 @@ public class APILocator extends ASTVisitor {
 		
 		if(body != null) {
 			for(Statement s : (List<Statement>) body.statements()) {
-				if(isAPI(s)) {
-					
+				for(String info:charainfo) {
+					String tmp[] = info.split("-");
+					if(isAPI(s,tmp[2])) {
+						System.out.println(s.toString());
+					}
 				}
 			}
 		}
 	}
 	
-	private boolean isAPI(Statement s) {
+	private boolean isAPI(Statement s, String key_method) {
 		boolean flag = false;
-		for(String info:charainfo) {
-			String tmp[] = info.split("-");
+		if(s.toString().contains(key_method)) {
+			flag = true;
 		}
 		return flag;
 	}
