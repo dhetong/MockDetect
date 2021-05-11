@@ -109,12 +109,14 @@ public class StubDetect extends AbstractHandler {
 				    		String key_1 = tmp[0] + "-" + tmp[1];
 				    		String key_2 = tmp[1];
 				    		if(methodvarmap.containsKey(key_1)) {
+				    			//need to fix
 				    			String info_tmp = tmp[0] + "-" + tmp[1] + "-" + tmp[2] + "-" + methodvarmap.get(key_1);
 				    			if(!charainfo.contains(info_tmp)) {
 				    				charainfo.add(info_tmp);
 				    			}
 				    		}
 				    		else if(fieldvarmap.containsKey(key_2)) {
+				    			//need to fix
 				    			String info_tmp = tmp[0] + "-" + tmp[1] + "-" + tmp[2] + "-" + fieldvarmap.get(key_2);
 				    			if(!charainfofield.contains(info_tmp)) {
 				    				charainfofield.add(info_tmp);
