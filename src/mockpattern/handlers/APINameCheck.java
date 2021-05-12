@@ -12,7 +12,7 @@ public class APINameCheck extends ASTVisitor {
 	}
 	
 	public boolean visit(MethodInvocation node) {
-		if(node.getName().toString() == key_name) {
+		if(node.getName().toString().equals(key_name)) {
 			isAPI = true;
 		}
 		return super.visit(node);
