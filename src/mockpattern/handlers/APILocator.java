@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 
 public class APILocator extends ASTVisitor {
 	private Set<String> charainfo = new HashSet<String>();
@@ -39,6 +40,9 @@ public class APILocator extends ASTVisitor {
 					s.accept(checker);
 					if(checker.isAPI) {
 						if(s.getNodeType() == ASTNode.VARIABLE_DECLARATION_STATEMENT) {
+//							if(VarDecHander((VariableDeclarationStatement) s, tmp[3])) {
+//								break;
+//							}
 							VarDecHander((VariableDeclarationStatement) s, tmp[3]);
 							break;
 						}
@@ -48,8 +52,28 @@ public class APILocator extends ASTVisitor {
 		}
 	}
 	
-	private void VarDecHander(VariableDeclarationStatement node, String classname) {
-		String returntype = ((SimpleType) node.getType()).getName().toString();
-		System.out.println(returntype);
+	private boolean VarDecHander(VariableDeclarationStatement node, String classname) {
+		boolean flag = false;
+		//TODO:primitive type
+//		long serverCount=util.getHBaseClusterInterface().getClusterMetrics().getLiveServerMetrics().size();
+		//TODO:array type
+//		byte[] prev=value.getValue(FAMILY_NAME,COLUMN_PREV);
+		
+		if(node.getType().getNodeType() == ASTNode.SIMPLE_TYPE) {
+//			String returntype = ((SimpleType) node.getType()).getName().toString();
+//			if(returntype.equals(classname)) {
+//				flag = true;
+//			}
+		}
+		else if(node.getType().getNodeType() == ASTNode.PARAMETERIZED_TYPE) {
+//			String typename = ((SimpleType)((ParameterizedType) node.getType()).getType()).getName().toString();
+//			String argname = ((SimpleType)((ParameterizedType) node.getType()).typeArguments().get(0)).getName().toString();
+		}
+		else if(node.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE){
+		}
+		else if(node.getType().getNodeType() == ASTNode.ARRAY_TYPE){
+		}
+		
+		return flag;
 	}
 }
