@@ -1,6 +1,7 @@
 package mockpattern.handlers;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
 public class APINameCheck extends ASTVisitor {
@@ -13,8 +14,13 @@ public class APINameCheck extends ASTVisitor {
 	
 	public boolean visit(MethodInvocation node) {
 		if(node.getName().toString().equals(key_name)) {
+			//the binding is null
+//			IMethodBinding minfo = node.resolveMethodBinding();
+//			if(minfo == null) {
+//				System.out.println("null");
+//			}	
 			isAPI = true;
 		}
-		return super.visit(node);
+		return false;
 	}
 }
