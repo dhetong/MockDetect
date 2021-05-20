@@ -7,11 +7,14 @@ import java.util.Set;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.ParameterizedType;
+import org.eclipse.jdt.core.dom.SimpleName;
 
 public class APILocator extends ASTVisitor {
 	private Set<String> charainfo = new HashSet<String>();
@@ -59,6 +62,8 @@ public class APILocator extends ASTVisitor {
 		//TODO:array type
 //		byte[] prev=value.getValue(FAMILY_NAME,COLUMN_PREV);
 		
+		byte status=(byte)in.read();
+		
 		if(node.getType().getNodeType() == ASTNode.SIMPLE_TYPE) {
 //			String returntype = ((SimpleType) node.getType()).getName().toString();
 //			if(returntype.equals(classname)) {
@@ -70,6 +75,9 @@ public class APILocator extends ASTVisitor {
 //			String argname = ((SimpleType)((ParameterizedType) node.getType()).typeArguments().get(0)).getName().toString();
 		}
 		else if(node.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE){
+			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) node.fragments().get(0);
+			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+			ITypeBinding binding_tmp = var_tmp.resolveTypeBinding();
 		}
 		else if(node.getType().getNodeType() == ASTNode.ARRAY_TYPE){
 		}
