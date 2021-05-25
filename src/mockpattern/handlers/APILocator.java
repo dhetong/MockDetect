@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Statement;
@@ -28,6 +29,14 @@ public class APILocator extends ASTVisitor {
 	public boolean visit(MethodDeclaration node) {
 		MethodScanner(node);
 		return super.visit(node);
+	}
+	
+	public void LogInsert(VariableDeclarationStatement node) {
+		if(node.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
+			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) node.fragments().get(0);
+			IVariableBinding frag_binding = frag_tmp.resolveBinding();
+			frag_binding.getJavaElement();
+		}
 	}
 	
 	private void MethodScanner(MethodDeclaration node) {
@@ -62,7 +71,7 @@ public class APILocator extends ASTVisitor {
 		//TODO:array type
 //		byte[] prev=value.getValue(FAMILY_NAME,COLUMN_PREV);
 		
-		byte status=(byte)in.read();
+//		byte status=(byte)in.read();
 		
 		if(node.getType().getNodeType() == ASTNode.SIMPLE_TYPE) {
 //			String returntype = ((SimpleType) node.getType()).getName().toString();
@@ -78,6 +87,7 @@ public class APILocator extends ASTVisitor {
 			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) node.fragments().get(0);
 			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
 			ITypeBinding binding_tmp = var_tmp.resolveTypeBinding();
+			System.out.println(binding_tmp);
 		}
 		else if(node.getType().getNodeType() == ASTNode.ARRAY_TYPE){
 		}

@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +99,9 @@ public class StubDetect extends AbstractHandler {
 			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE){
 				for (ICompilationUnit unit : mypackage.getCompilationUnits()){
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);
+					
+					AST ast = cunit.getAST();
+					ASTRewrite rewriter = ASTRewrite.create(ast);
 					
 					Map<String, String> methodvarmap = new HashMap<>();
 					Map<String, String> fieldvarmap = new HashMap<>();

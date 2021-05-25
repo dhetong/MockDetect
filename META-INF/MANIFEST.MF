@@ -13,5 +13,6 @@ Automatic-Module-Name: MockPattern
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: org.eclipse.jdt.internal.corext.callhierarchy,
  org.eclipse.jem.java.util,
+ org.eclipse.jface.contentassist,
  org.eclipse.jgit.lib;version="5.8.0",
  org.eclipse.ui
