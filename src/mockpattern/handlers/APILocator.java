@@ -4,17 +4,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jdt.core.dom.ParameterizedType;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SimpleName;
 
 public class APILocator extends ASTVisitor {
@@ -31,11 +39,30 @@ public class APILocator extends ASTVisitor {
 		return super.visit(node);
 	}
 	
-	public void LogInsert(VariableDeclarationStatement node) {
+	public void LogInsert(VariableDeclarationStatement node, MethodDeclaration method) {
 		if(node.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
 			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) node.fragments().get(0);
-			IVariableBinding frag_binding = frag_tmp.resolveBinding();
-			frag_binding.getJavaElement();
+			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+			
+			AST ast = node.getAST();
+			ASTRewrite rewriter = ASTRewrite.create(ast);
+			
+			MethodInvocation methodInv = ast.newMethodInvocation();
+			
+			SimpleName nameSystem = ast.newSimpleName("System");  
+	        SimpleName nameOut = ast.newSimpleName("out");  
+	        SimpleName namePrintln = ast.newSimpleName("println");
+	        
+	        QualifiedName nameSystemOut = ast.newQualifiedName(nameSystem, nameOut);
+	        methodInv.setExpression(nameSystemOut);  
+	        methodInv.setName(namePrintln);
+	        
+	        SimpleName v_name = ast.newSimpleName(var_tmp.toString());	        
+	        methodInv.arguments().add(v_name);
+	        ExpressionStatement estatement = ast.newExpressionStatement(methodInv);
+	        
+	        ListRewrite listRewrite = rewriter.getListRewrite(method.getBody(), Block.STATEMENTS_PROPERTY);
+	        listRewrite.insertAfter(estatement, node, null);
 		}
 	}
 	
