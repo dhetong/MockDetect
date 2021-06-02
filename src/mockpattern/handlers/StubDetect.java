@@ -13,13 +13,25 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,13 +62,24 @@ public class StubDetect extends AbstractHandler {
 		IProject[] projects = root.getProjects();
 //		System.out.println(projects.length);
 		
-		DetectProjects(projects);
+		try {
+			DetectProjects(projects);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		System.out.println("DONE DETECTING");
 		return null;
 	}
 	
-	private void DetectProjects(IProject[] projects) {
+	private void DetectProjects(IProject[] projects) throws IllegalArgumentException, MalformedTreeException, BadLocationException {
 		for(IProject project : projects) {
 //			System.out.println("DETECTING IN: " + project.getName());
 			try {
@@ -78,7 +101,7 @@ public class StubDetect extends AbstractHandler {
 		}
 	}
 	
-	private void LocateInProject(IProject project) throws CoreException{
+	private void LocateInProject(IProject project) throws CoreException, IllegalArgumentException, MalformedTreeException, BadLocationException{
 		IJavaProject javaProject = JavaCore.create(project);
 		IPackageFragment[] packages = javaProject.getPackageFragments();
 		System.out.println(packages.toString());
@@ -86,11 +109,8 @@ public class StubDetect extends AbstractHandler {
 		for (IPackageFragment mypackage : packages) {
 			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
 				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
-					CompilationUnit cunit = ASTBuilder(unit, javaProject);
-					
+					CompilationUnit cunit = ASTBuilder(unit, javaProject);					
 					Document document = new Document(unit.getSource());
-					AST ast = cunit.getAST();
-					ASTRewrite rewriter = ASTRewrite.create(ast);
 					
 					for(int classi = 0;classi < cunit.types().size();classi++) {
 						if(!(cunit.types().get(classi) instanceof TypeDeclaration))
@@ -101,6 +121,26 @@ public class StubDetect extends AbstractHandler {
 						for(MethodDeclaration methodDecl:typedeclaration.getMethods()) {
 							System.out.println("Method name:\t" + methodDecl.getName().getIdentifier());
 							Block block = methodDecl.getBody();
+							if (block == null || block.statements().size()==0)
+								continue;
+							
+							//Scan method block to find target
+							for(Statement s : (List<Statement>) block.statements()) {
+								for(String info:charainfo) {
+									if(s.getNodeType() != ASTNode.VARIABLE_DECLARATION_STATEMENT)
+										continue;
+									String tmp[] = info.split("-");
+									APINameCheck checker = new APINameCheck(tmp[2]);
+									s.accept(checker);
+									if(checker.isAPI) {
+										TextEdit edits = InsertLog(cunit, (VariableDeclarationStatement)s, block, document);
+										if(edits == null)
+											continue;
+										edits.apply(document);
+										unit.getBuffer().setContents(document.get());
+									}
+								}
+							}
 						}
 					}
 					
@@ -194,5 +234,38 @@ public class StubDetect extends AbstractHandler {
 		astParser.setEnvironment(null, null, null, true);
 		CompilationUnit result = (CompilationUnit) (astParser.createAST(null));
         return result;
+	}
+		
+	private TextEdit InsertLog(CompilationUnit cunit, VariableDeclarationStatement s, Block block, Document document) throws JavaModelException, IllegalArgumentException, MalformedTreeException, BadLocationException {
+		if(s.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
+			AST ast = cunit.getAST();
+			ASTRewrite rewriter = ASTRewrite.create(ast);
+			
+			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) s.fragments().get(0);
+			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+		
+			//create logging statement
+			MethodInvocation methodInv = ast.newMethodInvocation();
+			SimpleName nameSystem = ast.newSimpleName("System");  
+	        SimpleName nameOut = ast.newSimpleName("out");  
+	        SimpleName namePrintln = ast.newSimpleName("println");
+	        QualifiedName nameSystemOut = ast.newQualifiedName(nameSystem, nameOut);
+	        methodInv.setExpression(nameSystemOut);  
+	        methodInv.setName(namePrintln);
+	        //insert return value into logging statement
+	        SimpleName v_name = ast.newSimpleName(var_tmp.toString());
+	        methodInv.arguments().add(v_name);
+	        ExpressionStatement estatement = ast.newExpressionStatement(methodInv);
+	        
+	        ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+	        listRewrite.insertAfter(estatement, s, null);
+	        
+	        TextEdit edits = rewriter.rewriteAST();
+	        
+	        return edits;
+		}
+		else {
+			return null;
+		}
 	}
 }
