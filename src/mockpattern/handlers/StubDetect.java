@@ -14,8 +14,12 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jface.text.Document;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,8 +87,25 @@ public class StubDetect extends AbstractHandler {
 			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
 				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);
-					APILocator locator = new APILocator(charainfo, charainfofield);
-					cunit.accept(locator);
+					
+					Document document = new Document(unit.getSource());
+					AST ast = cunit.getAST();
+					ASTRewrite rewriter = ASTRewrite.create(ast);
+					
+					for(int classi = 0;classi < cunit.types().size();classi++) {
+						if(!(cunit.types().get(classi) instanceof TypeDeclaration))
+							continue;
+						TypeDeclaration typedeclaration = (TypeDeclaration) cunit.types().get(classi);
+						System.out.println("--------------------------classname:\t"+typedeclaration.getName());
+						
+						for(MethodDeclaration methodDecl:typedeclaration.getMethods()) {
+							System.out.println("Method name:\t" + methodDecl.getName().getIdentifier());
+							Block block = methodDecl.getBody();
+						}
+					}
+					
+//					APILocator locator = new APILocator(charainfo, charainfofield);
+//					cunit.accept(locator);
 				}
 			}
 		}
