@@ -101,10 +101,11 @@ public class APILocator extends ASTVisitor {
 //		byte status=(byte)in.read();
 		
 		if(node.getType().getNodeType() == ASTNode.SIMPLE_TYPE) {
-//			String returntype = ((SimpleType) node.getType()).getName().toString();
-//			if(returntype.equals(classname)) {
-//				flag = true;
-//			}
+//			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) node.fragments().get(0);
+//			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+//			ITypeBinding binding_tmp = var_tmp.resolveTypeBinding();
+//			System.out.println(binding_tmp);
+//			System.out.println(var_tmp.toString());
 		}
 		else if(node.getType().getNodeType() == ASTNode.PARAMETERIZED_TYPE) {
 //			String typename = ((SimpleType)((ParameterizedType) node.getType()).getType()).getName().toString();
@@ -115,6 +116,7 @@ public class APILocator extends ASTVisitor {
 			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
 			ITypeBinding binding_tmp = var_tmp.resolveTypeBinding();
 			System.out.println(binding_tmp);
+			System.out.println(var_tmp.toString());
 		}
 		else if(node.getType().getNodeType() == ASTNode.ARRAY_TYPE){
 		}
