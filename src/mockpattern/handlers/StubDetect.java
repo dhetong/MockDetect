@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -18,6 +19,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.QualifiedName;
@@ -133,11 +135,7 @@ public class StubDetect extends AbstractHandler {
 									APINameCheck checker = new APINameCheck(tmp[2]);
 									s.accept(checker);
 									if(checker.isAPI) {
-										TextEdit edits = InsertLog(cunit, (VariableDeclarationStatement)s, block, document);
-										if(edits == null)
-											continue;
-										edits.apply(document);
-										unit.getBuffer().setContents(document.get());
+										InsertLog(methodDecl, (VariableDeclarationStatement)s, block, document);										
 									}
 								}
 							}
@@ -236,8 +234,12 @@ public class StubDetect extends AbstractHandler {
         return result;
 	}
 		
-	private TextEdit InsertLog(CompilationUnit cunit, VariableDeclarationStatement s, Block block, Document document) throws JavaModelException, IllegalArgumentException, MalformedTreeException, BadLocationException {
+	private void InsertLog(MethodDeclaration methodDecl, VariableDeclarationStatement s, Block block, Document document) throws JavaModelException, IllegalArgumentException, MalformedTreeException, BadLocationException {
 		if(s.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
+			IMethodBinding imethodbinding = methodDecl.resolveBinding();
+			IMethod imethod = (IMethod) imethodbinding.getJavaElement();
+			final ICompilationUnit unit = imethod.getCompilationUnit();
+			CompilationUnit cunit = parse(unit);
 			AST ast = cunit.getAST();
 			ASTRewrite rewriter = ASTRewrite.create(ast);
 			
@@ -260,12 +262,17 @@ public class StubDetect extends AbstractHandler {
 	        ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
 	        listRewrite.insertAfter(estatement, s, null);
 	        
-	        TextEdit edits = rewriter.rewriteAST();
-	        
-	        return edits;
+	        TextEdit edits = rewriter.rewriteAST(document, null);
+	        edits.apply(document);
+	        unit.getBuffer().setContents(document.get());
 		}
-		else {
-			return null;
-		}
+	}
+	
+	private static CompilationUnit parse(ICompilationUnit unit) {
+		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setSource(unit);
+		parser.setResolveBindings(true);
+		return (CompilationUnit) parser.createAST(null); // parse
 	}
 }
