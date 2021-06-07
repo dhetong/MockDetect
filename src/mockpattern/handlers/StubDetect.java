@@ -35,6 +35,8 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -113,11 +116,15 @@ public class StubDetect extends AbstractHandler {
 				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);					
 					Document document = new Document(unit.getSource());
+					File file = unit.getPath().toFile();
+					
 					AST ast = cunit.getAST();
 					ASTRewrite rewriter = ASTRewrite.create(ast);
 					
 					List<MethodDeclaration> methodDeclarations = MethodDeclarationFinder.perform(cunit);
 					String relative_path = unit.getPath().toString();
+					
+					int adj = 1;
 					
 					for(MethodDeclaration methodDeclaration : methodDeclarations) {
 						System.out.println("Method name:\t" + methodDeclaration.getName().getIdentifier());
@@ -133,10 +140,9 @@ public class StubDetect extends AbstractHandler {
 								String tmp[] = info.split("-");
 								APINameCheck checker = new APINameCheck(tmp[2]);
 								s.accept(checker);
-								if(checker.isAPI == false)
-									continue;
-								else {
-									if(s.getNodeType() == ASTNode.PRIMITIVE_TYPE) {
+								if(checker.isAPI){
+									int type = ((VariableDeclarationStatement) s).getType().getNodeType();
+									if(type == ASTNode.PRIMITIVE_TYPE) {
 										VariableDeclarationFragment frag_tmp = 
 												(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
 										SimpleName var_tmp = (SimpleName) frag_tmp.getName();
@@ -150,7 +156,11 @@ public class StubDetect extends AbstractHandler {
 										ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
 										
 										ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
-										listRewrite.insertAt(printstatement, index, null);
+										listRewrite.insertAt(printstatement, index+adj, null);
+										
+										adj = adj+1;
+										
+										break;
 									}
 								}
 							}
@@ -158,6 +168,14 @@ public class StubDetect extends AbstractHandler {
 					}
 					TextEdit edits = rewriter.rewriteAST(document,null);
 					edits.apply(document);
+					unit.getBuffer().setContents(document.get());
+					System.out.println(unit.getBuffer().toString());
+//					try {
+//						FileUtils.write(file, document.get());
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
 				}
 			}
 		}
