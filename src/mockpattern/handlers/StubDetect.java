@@ -113,6 +113,12 @@ public class StubDetect extends AbstractHandler {
 				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);					
 					Document document = new Document(unit.getSource());
+					AST ast = cunit.getAST();
+					ASTRewrite rewriter = ASTRewrite.create(ast);
+					
+					List<MethodDeclaration> methodDeclarations = MethodDeclarationFinder.perform(cunit);
+					
+					
 					
 					for(int classi = 0;classi < cunit.types().size();classi++) {
 						if(!(cunit.types().get(classi) instanceof TypeDeclaration))
@@ -238,7 +244,7 @@ public class StubDetect extends AbstractHandler {
 		if(s.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
 			IMethodBinding imethodbinding = methodDecl.resolveBinding();
 			IMethod imethod = (IMethod) imethodbinding.getJavaElement();
-			final ICompilationUnit unit = imethod.getCompilationUnit();
+			ICompilationUnit unit = imethod.getCompilationUnit();
 			CompilationUnit cunit = parse(unit);
 			AST ast = cunit.getAST();
 			ASTRewrite rewriter = ASTRewrite.create(ast);
