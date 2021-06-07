@@ -117,39 +117,47 @@ public class StubDetect extends AbstractHandler {
 					ASTRewrite rewriter = ASTRewrite.create(ast);
 					
 					List<MethodDeclaration> methodDeclarations = MethodDeclarationFinder.perform(cunit);
+					String relative_path = unit.getPath().toString();
 					
-					
-					
-					for(int classi = 0;classi < cunit.types().size();classi++) {
-						if(!(cunit.types().get(classi) instanceof TypeDeclaration))
+					for(MethodDeclaration methodDeclaration : methodDeclarations) {
+						System.out.println("Method name:\t" + methodDeclaration.getName().getIdentifier());
+						Block block = methodDeclaration.getBody();
+						if(block == null || block.statements().size()==0)
 							continue;
-						TypeDeclaration typedeclaration = (TypeDeclaration) cunit.types().get(classi);
-						System.out.println("--------------------------classname:\t"+typedeclaration.getName());
 						
-						for(MethodDeclaration methodDecl:typedeclaration.getMethods()) {
-							System.out.println("Method name:\t" + methodDecl.getName().getIdentifier());
-							Block block = methodDecl.getBody();
-							if (block == null || block.statements().size()==0)
+						for(int index = 0;index < block.statements().size();index++) {
+							Statement s = (Statement) block.statements().get(index);
+							if(s.getNodeType() != ASTNode.VARIABLE_DECLARATION_STATEMENT)
 								continue;
-							
-							//Scan method block to find target
-							for(Statement s : (List<Statement>) block.statements()) {
-								for(String info:charainfo) {
-									if(s.getNodeType() != ASTNode.VARIABLE_DECLARATION_STATEMENT)
-										continue;
-									String tmp[] = info.split("-");
-									APINameCheck checker = new APINameCheck(tmp[2]);
-									s.accept(checker);
-									if(checker.isAPI) {
-										InsertLog(methodDecl, (VariableDeclarationStatement)s, block, document);										
+							for(String info:charainfo) {
+								String tmp[] = info.split("-");
+								APINameCheck checker = new APINameCheck(tmp[2]);
+								s.accept(checker);
+								if(checker.isAPI == false)
+									continue;
+								else {
+									if(s.getNodeType() == ASTNode.PRIMITIVE_TYPE) {
+										VariableDeclarationFragment frag_tmp = 
+												(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
+										SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+										
+										MethodInvocation methodInvocation = ast.newMethodInvocation();
+										QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
+										methodInvocation.setExpression(qName);
+										methodInvocation.setName(ast.newSimpleName("println"));
+										SimpleName v_name = ast.newSimpleName(var_tmp.toString());
+										methodInvocation.arguments().add(v_name);
+										ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
+										
+										ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+										listRewrite.insertAt(printstatement, index, null);
 									}
 								}
 							}
 						}
 					}
-					
-//					APILocator locator = new APILocator(charainfo, charainfofield);
-//					cunit.accept(locator);
+					TextEdit edits = rewriter.rewriteAST(document,null);
+					edits.apply(document);
 				}
 			}
 		}
