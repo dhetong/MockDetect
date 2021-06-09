@@ -179,8 +179,7 @@ public class StubDetect extends AbstractHandler {
 				}
 			}
 		}
-	}
-	
+	}	
 	private void ProcessProject(IProject project) throws CoreException{
 		IJavaProject javaProject = JavaCore.create(project);
 		IPackageFragment[] packages = javaProject.getPackageFragments();
@@ -265,40 +264,7 @@ public class StubDetect extends AbstractHandler {
 		CompilationUnit result = (CompilationUnit) (astParser.createAST(null));
         return result;
 	}
-		
-	private void InsertLog(MethodDeclaration methodDecl, VariableDeclarationStatement s, Block block, Document document) throws JavaModelException, IllegalArgumentException, MalformedTreeException, BadLocationException {
-		if(s.getType().getNodeType() == ASTNode.PRIMITIVE_TYPE) {
-			IMethodBinding imethodbinding = methodDecl.resolveBinding();
-			IMethod imethod = (IMethod) imethodbinding.getJavaElement();
-			ICompilationUnit unit = imethod.getCompilationUnit();
-			CompilationUnit cunit = parse(unit);
-			AST ast = cunit.getAST();
-			ASTRewrite rewriter = ASTRewrite.create(ast);
-			
-			VariableDeclarationFragment frag_tmp = (VariableDeclarationFragment) s.fragments().get(0);
-			SimpleName var_tmp = (SimpleName) frag_tmp.getName();
-		
-			//create logging statement
-			MethodInvocation methodInv = ast.newMethodInvocation();
-			SimpleName nameSystem = ast.newSimpleName("System");  
-	        SimpleName nameOut = ast.newSimpleName("out");  
-	        SimpleName namePrintln = ast.newSimpleName("println");
-	        QualifiedName nameSystemOut = ast.newQualifiedName(nameSystem, nameOut);
-	        methodInv.setExpression(nameSystemOut);  
-	        methodInv.setName(namePrintln);
-	        //insert return value into logging statement
-	        SimpleName v_name = ast.newSimpleName(var_tmp.toString());
-	        methodInv.arguments().add(v_name);
-	        ExpressionStatement estatement = ast.newExpressionStatement(methodInv);
-	        
-	        ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
-	        listRewrite.insertAfter(estatement, s, null);
-	        
-	        TextEdit edits = rewriter.rewriteAST(document, null);
-	        edits.apply(document);
-	        unit.getBuffer().setContents(document.get());
-		}
-	}
+
 	
 	private static CompilationUnit parse(ICompilationUnit unit) {
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
