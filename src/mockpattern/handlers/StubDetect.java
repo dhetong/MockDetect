@@ -111,74 +111,76 @@ public class StubDetect extends AbstractHandler {
 		IPackageFragment[] packages = javaProject.getPackageFragments();
 		System.out.println(packages.toString());
 		
-		for (IPackageFragment mypackage : packages) {
-			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
-				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
-					CompilationUnit cunit = ASTBuilder(unit, javaProject);					
-					Document document = new Document(unit.getSource());
-					File file = unit.getPath().toFile();
-					
-					AST ast = cunit.getAST();
-					ASTRewrite rewriter = ASTRewrite.create(ast);
-					
-					List<MethodDeclaration> methodDeclarations = MethodDeclarationFinder.perform(cunit);
-					String relative_path = unit.getPath().toString();
-					
-					int adj = 1;
-					
-					for(MethodDeclaration methodDeclaration : methodDeclarations) {
-						System.out.println("Method name:\t" + methodDeclaration.getName().getIdentifier());
-						Block block = methodDeclaration.getBody();
-						if(block == null || block.statements().size()==0)
-							continue;
-						
-						for(int index = 0;index < block.statements().size();index++) {
-							Statement s = (Statement) block.statements().get(index);
-							if(s.getNodeType() != ASTNode.VARIABLE_DECLARATION_STATEMENT)
-								continue;
-							for(String info:charainfo) {
-								String tmp[] = info.split("-");
-								APINameCheck checker = new APINameCheck(tmp[2]);
-								s.accept(checker);
-								if(checker.isAPI){
-									int type = ((VariableDeclarationStatement) s).getType().getNodeType();
-									if(type == ASTNode.PRIMITIVE_TYPE) {
-										VariableDeclarationFragment frag_tmp = 
-												(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
-										SimpleName var_tmp = (SimpleName) frag_tmp.getName();
-										
-										MethodInvocation methodInvocation = ast.newMethodInvocation();
-										QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
-										methodInvocation.setExpression(qName);
-										methodInvocation.setName(ast.newSimpleName("println"));
-										SimpleName v_name = ast.newSimpleName(var_tmp.toString());
-										methodInvocation.arguments().add(v_name);
-										ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
-										
-										ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
-										listRewrite.insertAt(printstatement, index+adj, null);
-										
-										adj = adj+1;
-										
-										break;
-									}
-								}
-							}
-						}
-					}
-					TextEdit edits = rewriter.rewriteAST(document,null);
-					edits.apply(document);
-					unit.getBuffer().setContents(document.get());
-					System.out.println(unit.getBuffer().toString());
-//					try {
-//						FileUtils.write(file, document.get());
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
+		for(IPackageFragment mypackage : packages) {
+			if(mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
+				for(ICompilationUnit unit : mypackage.getCompilationUnits()) {
+					CompilationUnit cunit = ASTBuilder(unit, javaProject);
 				}
 			}
 		}
+		
+//		for (IPackageFragment mypackage : packages) {
+//			if (mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
+//				for (ICompilationUnit unit : mypackage.getCompilationUnits()) {
+//					CompilationUnit cunit = ASTBuilder(unit, javaProject);					
+//					Document document = new Document(unit.getSource());
+//					File file = unit.getPath().toFile();
+//					
+//					AST ast = cunit.getAST();
+//					ASTRewrite rewriter = ASTRewrite.create(ast);
+//					
+//					List<MethodDeclaration> methodDeclarations = MethodDeclarationFinder.perform(cunit);
+//					String relative_path = unit.getPath().toString();
+//					
+//					int adj = 1;
+//					
+//					for(MethodDeclaration methodDeclaration : methodDeclarations) {
+//						System.out.println("Method name:\t" + methodDeclaration.getName().getIdentifier());
+//						Block block = methodDeclaration.getBody();
+//						if(block == null || block.statements().size()==0)
+//							continue;
+//						
+//						for(int index = 0;index < block.statements().size();index++) {
+//							Statement s = (Statement) block.statements().get(index);
+//							if(s.getNodeType() != ASTNode.VARIABLE_DECLARATION_STATEMENT)
+//								continue;
+//							for(String info:charainfo) {
+//								String tmp[] = info.split("-");
+//								APINameCheck checker = new APINameCheck(tmp[2]);
+//								s.accept(checker);
+//								if(checker.isAPI){
+//									int type = ((VariableDeclarationStatement) s).getType().getNodeType();
+//									if(type == ASTNode.PRIMITIVE_TYPE) {
+//										VariableDeclarationFragment frag_tmp = 
+//												(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
+//										SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+//										
+//										MethodInvocation methodInvocation = ast.newMethodInvocation();
+//										QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
+//										methodInvocation.setExpression(qName);
+//										methodInvocation.setName(ast.newSimpleName("println"));
+//										SimpleName v_name = ast.newSimpleName(var_tmp.toString());
+//										methodInvocation.arguments().add(v_name);
+//										ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
+//										
+//										ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+//										listRewrite.insertAt(printstatement, index+adj, null);
+//										
+//										adj = adj+1;
+//										
+//										break;
+//									}
+//								}
+//							}
+//						}
+//					}
+//					TextEdit edits = rewriter.rewriteAST(document,null);
+//					edits.apply(document);
+//					unit.getBuffer().setContents(document.get());
+//					System.out.println(unit.getBuffer().toString());
+//				}
+//			}
+//		}
 	}	
 	private void ProcessProject(IProject project) throws CoreException{
 		IJavaProject javaProject = JavaCore.create(project);

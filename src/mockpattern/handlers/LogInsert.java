@@ -26,6 +26,8 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 public class LogInsert {
+	private boolean isFirst = true;
+	
 	public void fileLogInsert(CompilationUnit cunit,Document document,File file, Set<String> charainfo) {
 		AST ast = cunit.getAST();
 		ASTRewrite rewriter = ASTRewrite.create(ast);
