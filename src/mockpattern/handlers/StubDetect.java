@@ -36,6 +36,7 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -56,6 +58,8 @@ public class StubDetect extends AbstractHandler {
 	
 	Set<String> charainfo = new HashSet<String>();
 	Set<String> charainfofield = new HashSet<String>();
+	
+	String projectpath = "/Users/hetongdai/Desktop/EWorkspace";
 
 	@Override
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {
@@ -115,6 +119,12 @@ public class StubDetect extends AbstractHandler {
 			if(mypackage.getKind() == IPackageFragmentRoot.K_SOURCE) {
 				for(ICompilationUnit unit : mypackage.getCompilationUnits()) {
 					CompilationUnit cunit = ASTBuilder(unit, javaProject);
+					Document document = new Document(unit.getSource());
+					String path = projectpath + unit.getPath().toOSString();
+					File file = new File(path);
+					
+					LogInsert inserter = new LogInsert();
+					inserter.fileLogInsert(cunit, document, file, charainfo);
 				}
 			}
 		}
