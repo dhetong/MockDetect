@@ -51,6 +51,14 @@ public class LogInsert {
 					APINameCheck checker = new APINameCheck(tmp[2]);
 					s.accept(checker);
 					if(checker.isAPI) {
+						if(isFirst) {
+							isFirst = false;
+							
+							VariableDeclarationFragment fileFragment = ast.newVariableDeclarationFragment();
+							SimpleName v_file = ast.newSimpleName("writeFile");
+							
+							File writeFile = new File("G:\\FileSave\\dataFile\\write.csv");
+						}
 						int type = ((VariableDeclarationStatement) s).getType().getNodeType();
 						if(type == ASTNode.PRIMITIVE_TYPE) {
 							VariableDeclarationFragment frag_tmp = 
