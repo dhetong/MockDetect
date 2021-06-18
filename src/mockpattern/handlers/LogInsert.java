@@ -11,6 +11,8 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.QualifiedName;
@@ -51,34 +53,51 @@ public class LogInsert {
 					APINameCheck checker = new APINameCheck(tmp[2]);
 					s.accept(checker);
 					if(checker.isAPI) {
-						if(isFirst) {
-							isFirst = false;
-							
-							VariableDeclarationFragment fileFragment = ast.newVariableDeclarationFragment();
-							SimpleName v_file = ast.newSimpleName("writeFile");
-							
-							File writeFile = new File("G:\\FileSave\\dataFile\\write.csv");
-						}
 						int type = ((VariableDeclarationStatement) s).getType().getNodeType();
 						if(type == ASTNode.PRIMITIVE_TYPE) {
+//							VariableDeclarationFragment frag_tmp = 
+//									(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
+//							SimpleName var_tmp = (SimpleName) frag_tmp.getName();
+//							
+//							MethodInvocation methodInvocation = ast.newMethodInvocation();
+//							QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
+//							methodInvocation.setExpression(qName);
+//							methodInvocation.setName(ast.newSimpleName("println"));
+//							SimpleName v_name = ast.newSimpleName(var_tmp.toString());
+//							methodInvocation.arguments().add(v_name);
+//							ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
+//							
+//							ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+//							listRewrite.insertAt(printstatement, index+adj, null);
+//							
+//							adj = adj+1;
+//							
+//							break;
+						}
+						else if(type == ASTNode.SIMPLE_TYPE){
 							VariableDeclarationFragment frag_tmp = 
 									(VariableDeclarationFragment) ((VariableDeclarationStatement)s).fragments().get(0);
 							SimpleName var_tmp = (SimpleName) frag_tmp.getName();
-							
-							MethodInvocation methodInvocation = ast.newMethodInvocation();
-							QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
-							methodInvocation.setExpression(qName);
-							methodInvocation.setName(ast.newSimpleName("println"));
-							SimpleName v_name = ast.newSimpleName(var_tmp.toString());
-							methodInvocation.arguments().add(v_name);
-							ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
-							
-							ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
-							listRewrite.insertAt(printstatement, index+adj, null);
-							
-							adj = adj+1;
-							
-							break;
+							ITypeBinding var_binding = var_tmp.resolveTypeBinding();
+							if(var_binding.getName().equals("String")) {
+//								MethodInvocation methodInvocation = ast.newMethodInvocation();
+//								QualifiedName qName = ast.newQualifiedName(ast.newSimpleName("System"), ast.newSimpleName("out"));
+//								methodInvocation.setExpression(qName);
+//								methodInvocation.setName(ast.newSimpleName("println"));
+//								SimpleName v_name = ast.newSimpleName(var_tmp.toString());
+//								methodInvocation.arguments().add(v_name);
+//								ExpressionStatement printstatement = ast.newExpressionStatement(methodInvocation);
+//								
+//								ListRewrite listRewrite = rewriter.getListRewrite(block, Block.STATEMENTS_PROPERTY);
+//								listRewrite.insertAt(printstatement, index+adj, null);
+//								
+//								adj = adj+1;
+//								
+//								break;
+							}
+							else {
+								IMethodBinding[] methods_list = var_binding.getDeclaredMethods();
+							}
 						}
 					}
 				}
